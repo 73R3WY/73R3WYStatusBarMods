@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="4"
+    android:orientation="vertical" >
+
+    <com.jeremypacabis.statusbarmods.AppLauncherOnSystemUI
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="3.0" />
+
+    <com.jeremypacabis.statusbarmods.AppLauncherOnSystemUISettings
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1.0" />
+
+</LinearLayout>

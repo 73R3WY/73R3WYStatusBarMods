@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <com.jeremypacabis.statusbarmods.SlidingDrawer
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <SlidingDrawer
+            android:id="@+id/SlidingDrawer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:content="@+id/SlidingDrawerContent"
+            android:handle="@+id/SlidingDrawerHandle"
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/SlidingDrawerHandle"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="" />
+
+            <LinearLayout
+                android:id="@+id/SlidingDrawerContent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center"
+                    android:text="@android:string/untitled"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center"
+                    android:text="@android:string/untitled"
+                    android:textSize="16sp" />
+            </LinearLayout>
+        </SlidingDrawer>
+    </com.jeremypacabis.statusbarmods.SlidingDrawer>
+
+</RelativeLayout>

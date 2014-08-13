@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">73R3WYStatusBarMods</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="html_aboutapp">
+<![CDATA[
+<p><b>SystemUIAppLauncherSettings</b> is used to customize the 10 Customizable SystemUI Application Launcher.</p>
+<p><b>SystemUIAppLauncherSettings</b> is NOT a standalone-app, you need to apply the mod from the link below:</p>
+<br>
+<br>GUIDE: <a href="http://forum.xda-developers.com/galaxy-y/general/guide-add-10-customizable-app-launcher-t2841753">[GUIDE] Add 10 Customizable App Launcher on SystemUI</a>
+<br>
+<br>BY: <a href="http://forum.xda-developers.com/member.php?u=5304022">73R3WY@xda</a>
+<br>
+<br>v0.3 \u00A9 2014 <a href="http://forum.xda-developers.com/member.php?u=5304022">73R3WY</a>
+]]>
+    </string>
+
+</resources>
