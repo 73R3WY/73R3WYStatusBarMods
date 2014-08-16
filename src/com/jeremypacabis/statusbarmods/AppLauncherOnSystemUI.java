@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.text.TextUtils.TruncateAt;
@@ -32,6 +33,10 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			APPICON6, APPICON7, APPICON8, APPICON9, APPICON10;
 	Intent mIntent;
 	private static final int CAPACITY = 10;
+	private static final String TEXTCOLOR_INTENT_ACTION = "com.jeremypacabis.statusbarmods.TEXTCOLOR";
+	private static final String TEXTCOLOR_SETTING_INTENT_EXTRA_KEY = "com.jeremypacabis.statusbarmods.TEXTCOLOR_INTENT_EXTRA";
+	private static final String BACKGROUND_INTENT_ACTION = "com.jeremypacabis.statusbarmods.BACKGROUND";
+	private static final String BACKGROUND_SETTING_INTENT_EXTRA_KEY = "com.jeremypacabis.statusbarmods.BACKGROUND_INTENT_EXTRA";
 	private static final String TEXT_SIZE_INTENT_ACTION = "com.jeremypacabis.statusbarmods.TEXT_SIZE";
 	private static final String TEXT_SIZE_INTENT_EXTRA_KEY = "com.jeremypacabis.statusbarmods.TEXT_SIZE_INTENT_EXTRA";
 	private static final String KEY_SETTINGS = "com.jeremypacabis.statusbarmods.SETTINGS";
@@ -76,9 +81,12 @@ public class AppLauncherOnSystemUI extends ScrollView {
 	private static final String KEY_LIST_KEY[] = { "LIST1", "LIST2", "LIST3",
 			"LIST4", "LIST5", "LIST6", "LIST7", "LIST8", "LIST9", "LIST10" };
 	private BroadcastReceiver BRAPP1, BRAPP2, BRAPP3, BRAPP4, BRAPP5, BRAPP6,
-			BRAPP7, BRAPP8, BRAPP9, BRAPP10, SETTINGS, ICONSIZE, TEXTSIZE;
-	private static final int BACKGROUND = android.R.drawable.alert_light_frame;
-	int ViewMode, iconSize, defaultIconSize;
+			BRAPP7, BRAPP8, BRAPP9, BRAPP10, SETTINGS, ICONSIZE, TEXTSIZE,
+			LAUNCHERBACKGROUNDSET, TEXTCOLORBR;
+	private int BACKGROUNDS[] = { android.R.drawable.alert_light_frame,
+			android.R.drawable.alert_dark_frame,
+			android.R.drawable.toast_frame, android.R.color.transparent };
+	int ViewMode, iconSize, defaultIconSize, launcherBackground, TEXTCOLOR;
 
 	HorizontalScrollView HSV;
 	LinearLayout.LayoutParams HLLP;
@@ -145,6 +153,8 @@ public class AppLauncherOnSystemUI extends ScrollView {
 		addView(LL);
 		setTextViewParams();
 		loadList();
+		TEXTCOLOR = getTextColor();
+		setTextColor(getTextColor());
 		switch (vm) {
 		case 0:
 
@@ -153,23 +163,130 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			iconsOnly();
 			break;
 		case 2:
-			APP1.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			APP2.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			APP3.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			APP4.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			APP5.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			APP6.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			APP7.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			APP8.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			APP9.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-			APP10.setCompoundDrawablesWithIntrinsicBounds(null, null, null,
-					null);
+			labelsOnly();
 			break;
-		case 3:
+		case 100:
 			iconsOnly();
 			setHorizontalLayout();
 			break;
+		case 3:
+			setHorizontalLayout();
+			setVerticalIconAndText();
+			break;
+		default:
+			break;
 		}
+		setTextViewFocus();
+	}
+
+	private void labelsOnly() {
+		APP1.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+		APP2.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+		APP3.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+		APP4.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+		APP5.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+		APP6.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+		APP7.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+		APP8.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+		APP9.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+		APP10.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+	}
+
+	private void setTextViewFocus() {
+		APP1.setFocusable(true);
+		APP2.setFocusable(true);
+		APP3.setFocusable(true);
+		APP4.setFocusable(true);
+		APP5.setFocusable(true);
+		APP6.setFocusable(true);
+		APP7.setFocusable(true);
+		APP8.setFocusable(true);
+		APP9.setFocusable(true);
+		APP10.setFocusable(true);
+		APP1.setFocusableInTouchMode(true);
+		APP2.setFocusableInTouchMode(true);
+		APP3.setFocusableInTouchMode(true);
+		APP4.setFocusableInTouchMode(true);
+		APP5.setFocusableInTouchMode(true);
+		APP6.setFocusableInTouchMode(true);
+		APP7.setFocusableInTouchMode(true);
+		APP8.setFocusableInTouchMode(true);
+		APP9.setFocusableInTouchMode(true);
+		APP10.setFocusableInTouchMode(true);
+	}
+
+	private void setVerticalIconAndText() {
+		LinearLayout.LayoutParams VIAT = new LinearLayout.LayoutParams(
+				iconSize * 2, iconSize * 2);
+		float textSize = (float) getIconSize() / 4.0f;
+		APP1.setLayoutParams(VIAT);
+		APP2.setLayoutParams(VIAT);
+		APP3.setLayoutParams(VIAT);
+		APP4.setLayoutParams(VIAT);
+		APP5.setLayoutParams(VIAT);
+		APP6.setLayoutParams(VIAT);
+		APP7.setLayoutParams(VIAT);
+		APP8.setLayoutParams(VIAT);
+		APP9.setLayoutParams(VIAT);
+		APP10.setLayoutParams(VIAT);
+		APP1.setCompoundDrawables(null, APPICON1, null, null);
+		APP2.setCompoundDrawables(null, APPICON2, null, null);
+		APP3.setCompoundDrawables(null, APPICON3, null, null);
+		APP4.setCompoundDrawables(null, APPICON4, null, null);
+		APP5.setCompoundDrawables(null, APPICON5, null, null);
+		APP6.setCompoundDrawables(null, APPICON6, null, null);
+		APP7.setCompoundDrawables(null, APPICON7, null, null);
+		APP8.setCompoundDrawables(null, APPICON8, null, null);
+		APP9.setCompoundDrawables(null, APPICON9, null, null);
+		APP10.setCompoundDrawables(null, APPICON10, null, null);
+		APP1.setGravity(Gravity.CENTER);
+		APP2.setGravity(Gravity.CENTER);
+		APP3.setGravity(Gravity.CENTER);
+		APP4.setGravity(Gravity.CENTER);
+		APP5.setGravity(Gravity.CENTER);
+		APP6.setGravity(Gravity.CENTER);
+		APP7.setGravity(Gravity.CENTER);
+		APP8.setGravity(Gravity.CENTER);
+		APP9.setGravity(Gravity.CENTER);
+		APP10.setGravity(Gravity.CENTER);
+		APP1.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		APP2.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		APP3.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		APP4.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		APP5.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		APP6.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		APP7.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		APP8.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		APP9.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		APP10.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+		setTheBounds();
+	}
+
+	private void setTextColor(int textColor) {
+		APP1.setTextColor(textColor);
+		APP2.setTextColor(textColor);
+		APP3.setTextColor(textColor);
+		APP4.setTextColor(textColor);
+		APP5.setTextColor(textColor);
+		APP6.setTextColor(textColor);
+		APP7.setTextColor(textColor);
+		APP8.setTextColor(textColor);
+		APP9.setTextColor(textColor);
+		APP10.setTextColor(textColor);
+		APP1.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+		APP2.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+		APP3.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+		APP4.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+		APP5.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+		APP6.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+		APP7.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+		APP8.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+		APP9.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+		APP10.setShadowLayer(0.5f, 0.5f, 0.5f, Color.GRAY);
+	}
+
+	private void viewRequestFocus(TextView v) {
+		v.requestFocus();
 	}
 
 	private void setHorizontalLayout() {
@@ -261,6 +378,30 @@ public class AppLauncherOnSystemUI extends ScrollView {
 	private void setBroadcastReceivers() {
 		// TODO Auto-generated method stub
 
+		TEXTCOLORBR = new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				// TODO Auto-generated method stub
+				TEXTCOLOR = intent.getIntExtra(
+						TEXTCOLOR_SETTING_INTENT_EXTRA_KEY, getTextColor());
+				saveTextColor(TEXTCOLOR);
+				setTextColor(TEXTCOLOR);
+			}
+		};
+
+		LAUNCHERBACKGROUNDSET = new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				// TODO Auto-generated method stub
+				launcherBackground = intent.getIntExtra(
+						BACKGROUND_SETTING_INTENT_EXTRA_KEY, 0);
+				saveLauncherBackground(launcherBackground);
+				setViewMode(getViewMode());
+			}
+		};
+
 		SETTINGS = new BroadcastReceiver() {
 
 			@Override
@@ -302,6 +443,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP1);
 				KEY_APPNAME[0] = intent.getStringExtra(KEY_APPNAME_KEY[0]);
 				KEY_APPINTENT[0] = intent.getStringExtra(KEY_INTENTNAME_KEY[0]);
 				saveReceivedData(0);
@@ -322,6 +464,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP2);
 				KEY_APPNAME[1] = intent.getStringExtra(KEY_APPNAME_KEY[1]);
 				KEY_APPINTENT[1] = intent.getStringExtra(KEY_INTENTNAME_KEY[1]);
 				saveReceivedData(1);
@@ -342,6 +485,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP3);
 				KEY_APPNAME[2] = intent.getStringExtra(KEY_APPNAME_KEY[2]);
 				KEY_APPINTENT[2] = intent.getStringExtra(KEY_INTENTNAME_KEY[2]);
 				saveReceivedData(2);
@@ -362,6 +506,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP4);
 				KEY_APPNAME[3] = intent.getStringExtra(KEY_APPNAME_KEY[3]);
 				KEY_APPINTENT[3] = intent.getStringExtra(KEY_INTENTNAME_KEY[3]);
 				saveReceivedData(3);
@@ -382,6 +527,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP5);
 				KEY_APPNAME[4] = intent.getStringExtra(KEY_APPNAME_KEY[4]);
 				KEY_APPINTENT[4] = intent.getStringExtra(KEY_INTENTNAME_KEY[4]);
 				saveReceivedData(4);
@@ -403,6 +549,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP6);
 				KEY_APPNAME[5] = intent.getStringExtra(KEY_APPNAME_KEY[5]);
 				KEY_APPINTENT[5] = intent.getStringExtra(KEY_INTENTNAME_KEY[5]);
 				saveReceivedData(5);
@@ -423,6 +570,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP7);
 				KEY_APPNAME[6] = intent.getStringExtra(KEY_APPNAME_KEY[6]);
 				KEY_APPINTENT[6] = intent.getStringExtra(KEY_INTENTNAME_KEY[6]);
 				saveReceivedData(6);
@@ -443,6 +591,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP8);
 				KEY_APPNAME[7] = intent.getStringExtra(KEY_APPNAME_KEY[7]);
 				KEY_APPINTENT[7] = intent.getStringExtra(KEY_INTENTNAME_KEY[7]);
 				saveReceivedData(7);
@@ -463,6 +612,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP9);
 				KEY_APPNAME[8] = intent.getStringExtra(KEY_APPNAME_KEY[8]);
 				KEY_APPINTENT[8] = intent.getStringExtra(KEY_INTENTNAME_KEY[8]);
 				saveReceivedData(8);
@@ -483,6 +633,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				viewRequestFocus(APP10);
 				KEY_APPNAME[9] = intent.getStringExtra(KEY_APPNAME_KEY[9]);
 				KEY_APPINTENT[9] = intent.getStringExtra(KEY_INTENTNAME_KEY[9]);
 				saveReceivedData(9);
@@ -498,6 +649,10 @@ public class AppLauncherOnSystemUI extends ScrollView {
 				}
 			}
 		};
+		mContext.registerReceiver(TEXTCOLORBR, new IntentFilter(
+				TEXTCOLOR_INTENT_ACTION));
+		mContext.registerReceiver(LAUNCHERBACKGROUNDSET, new IntentFilter(
+				BACKGROUND_INTENT_ACTION));
 		mContext.registerReceiver(TEXTSIZE, new IntentFilter(
 				TEXT_SIZE_INTENT_ACTION));
 		mContext.registerReceiver(ICONSIZE, new IntentFilter(ICON_SIZE_FILTER));
@@ -540,6 +695,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 
 	private void setTextViewParams() {
 		// TODO Auto-generated method stub
+		launcherBackground = getLauncherBackground();
 		APP1.setLayoutParams(TVLP);
 		APP2.setLayoutParams(TVLP);
 		APP3.setLayoutParams(TVLP);
@@ -593,26 +749,7 @@ public class AppLauncherOnSystemUI extends ScrollView {
 		setTheTextSizes(APP8, TEXT_SIZES[7]);
 		setTheTextSizes(APP9, TEXT_SIZES[8]);
 		setTheTextSizes(APP10, TEXT_SIZES[9]);
-		APP1.setFocusable(true);
-		APP2.setFocusable(true);
-		APP3.setFocusable(true);
-		APP4.setFocusable(true);
-		APP5.setFocusable(true);
-		APP6.setFocusable(true);
-		APP7.setFocusable(true);
-		APP8.setFocusable(true);
-		APP9.setFocusable(true);
-		APP10.setFocusable(true);
-		APP1.setFocusableInTouchMode(true);
-		APP2.setFocusableInTouchMode(true);
-		APP3.setFocusableInTouchMode(true);
-		APP4.setFocusableInTouchMode(true);
-		APP5.setFocusableInTouchMode(true);
-		APP6.setFocusableInTouchMode(true);
-		APP7.setFocusableInTouchMode(true);
-		APP8.setFocusableInTouchMode(true);
-		APP9.setFocusableInTouchMode(true);
-		APP10.setFocusableInTouchMode(true);
+		setTextViewFocus();
 		APP1.setGravity(Gravity.CENTER_VERTICAL);
 		APP2.setGravity(Gravity.CENTER_VERTICAL);
 		APP3.setGravity(Gravity.CENTER_VERTICAL);
@@ -623,16 +760,29 @@ public class AppLauncherOnSystemUI extends ScrollView {
 		APP8.setGravity(Gravity.CENTER_VERTICAL);
 		APP9.setGravity(Gravity.CENTER_VERTICAL);
 		APP10.setGravity(Gravity.CENTER_VERTICAL);
-		APP1.setBackgroundResource(BACKGROUND);
-		APP2.setBackgroundResource(BACKGROUND);
-		APP3.setBackgroundResource(BACKGROUND);
-		APP4.setBackgroundResource(BACKGROUND);
-		APP5.setBackgroundResource(BACKGROUND);
-		APP6.setBackgroundResource(BACKGROUND);
-		APP7.setBackgroundResource(BACKGROUND);
-		APP8.setBackgroundResource(BACKGROUND);
-		APP9.setBackgroundResource(BACKGROUND);
-		APP10.setBackgroundResource(BACKGROUND);
+		if (launcherBackground == 3) {
+			APP1.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+			APP2.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+			APP3.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+			APP4.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+			APP5.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+			APP6.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+			APP7.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+			APP8.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+			APP9.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+			APP10.setBackgroundColor(BACKGROUNDS[launcherBackground]);
+		} else {
+			APP1.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+			APP2.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+			APP3.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+			APP4.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+			APP5.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+			APP6.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+			APP7.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+			APP8.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+			APP9.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+			APP10.setBackgroundResource(BACKGROUNDS[launcherBackground]);
+		}
 	}
 
 	private void setTheTextSizes(TextView v, float size) {
@@ -938,6 +1088,8 @@ public class AppLauncherOnSystemUI extends ScrollView {
 		mContext.unregisterReceiver(SETTINGS);
 		mContext.unregisterReceiver(ICONSIZE);
 		mContext.unregisterReceiver(TEXTSIZE);
+		mContext.unregisterReceiver(LAUNCHERBACKGROUNDSET);
+		mContext.unregisterReceiver(TEXTCOLORBR);
 	}
 
 	protected void launchApp(Intent thisIntent) {
@@ -1066,5 +1218,29 @@ public class AppLauncherOnSystemUI extends ScrollView {
 			}
 		}
 		return null;
+	}
+
+	private int getLauncherBackground() {
+		sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+		return sp.getInt(BACKGROUND_SETTING_INTENT_EXTRA_KEY, 0);
+	}
+
+	private void saveLauncherBackground(int pos) {
+		sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+		spe = sp.edit();
+		spe.putInt(BACKGROUND_SETTING_INTENT_EXTRA_KEY, pos);
+		spe.commit();
+	}
+
+	private int getTextColor() {
+		sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+		return sp.getInt(TEXTCOLOR_SETTING_INTENT_EXTRA_KEY,
+				Color.parseColor("#FFFFFF00"));
+	}
+
+	private void saveTextColor(int textColor) {
+		openSPE();
+		spe.putInt(TEXTCOLOR_SETTING_INTENT_EXTRA_KEY, textColor);
+		commitSPE();
 	}
 }

@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">73R3WYStatusBarMods</string>
+    <string name="app_name">SystemUI App Launcher Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="html_aboutapp">
 <![CDATA[
+<p><b>Big Thanks to:</b></p>
+<br> - stackoverflow.com
+<br> - Pascal Cans (noobs.com) for the android-color-picker library
+<br><a href="https://github.com/brk3/android-color-picker">android-color-picker Library @ GitHub</a>
 <p><b>SystemUIAppLauncherSettings</b> is used to customize the 10 Customizable SystemUI Application Launcher.</p>
 <p><b>SystemUIAppLauncherSettings</b> is NOT a standalone-app, you need to apply the mod from the link below:</p>
 <br>

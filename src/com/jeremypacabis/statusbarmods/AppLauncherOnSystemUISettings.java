@@ -3,6 +3,8 @@ package com.jeremypacabis.statusbarmods;
 import java.util.ArrayList;
 import java.util.List;
 
+import yuku.ambilwarna.AmbilWarnaDialog;
+import yuku.ambilwarna.AmbilWarnaDialog.OnAmbilWarnaListener;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -44,6 +46,10 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 	private static final int CAPACITY = 10;
 	private static final String KEY_LIST[] = { "1", "2", "3", "4", "5", "6",
 			"7", "8", "9", "10" };
+	private static final String TEXTCOLOR_SETTING_INTENT_ACTION = "com.jeremypacabis.statusbarmods.TEXTCOLOR";
+	private static final String TEXTCOLOR_INTENT_EXTRA_KEY = "com.jeremypacabis.statusbarmods.TEXTCOLOR_INTENT_EXTRA";
+	private static final String BACKGROUND_SETTING_INTENT_ACTION = "com.jeremypacabis.statusbarmods.BACKGROUND";
+	private static final String BACKGROUND_INTENT_EXTRA_KEY = "com.jeremypacabis.statusbarmods.BACKGROUND_INTENT_EXTRA";
 	private static final String TEXT_SIZE_INTENT_ACTION = "com.jeremypacabis.statusbarmods.TEXT_SIZE";
 	private static final String TEXT_SIZE_INTENT_EXTRA_KEY = "com.jeremypacabis.statusbarmods.TEXT_SIZE_INTENT_EXTRA";
 	private static final String ICON_SIZE = "com.jeremypacabis.statusbarmods.ICON_SIZE";
@@ -52,9 +58,6 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 	private static final String VIEW_MODE_KEY = "com.jeremypacabis.statusbarmods.VIEW_MODE_KEY";
 	private static final String HORIZONTAL_KEY = "com.jeremypacabis.statusbarmods.HORIZONTAL";
 	private static final String HENABLED_KEY = "com.jeremypacabis.statusbarmods.HENABLED";
-	// private static final String KEY_TEXTSIZE_KEY[] = { "STSAPP1", "STSAPP2",
-	// "STSAPP3", "STSAPP4", "STSAPP5", "STSAPP6", "STSAPP7", "STSAPP8",
-	// "STSAPP9", "STSAPP10" };
 	private static final String KEY_APPNAME_KEY[] = {
 			"com.jeremypacabis.statusbarmods.APP1",
 			"com.jeremypacabis.statusbarmods.APP2",
@@ -90,22 +93,26 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 	private ArrayList<Drawable> APP_ICONS = new ArrayList<Drawable>();
 	private ArrayList<String> APPS_SHORTCUT = new ArrayList<String>(CAPACITY);
 	private ArrayAdapter<String> APPS_SHORTCUT_ADAPTER;
-	String OPTIONS[] = { "Remove shortcut" };
-	String MODES[] = { "Icon + Label", "Icon only", "Label only" };
-	String APP_NAMES[] = new String[CAPACITY];
-	String OLD_LIST_NAME, NEW_LIST_NAME, INTENT;
-	ArrayAdapter<String> mSpinnerAdapter;
+	private String OPTIONS[] = { "Remove shortcut" };
+	private String MODES[] = { "Icon + Label", "Icon only", "Label only",
+			"Icon + Label (Vertical)" };
+	private String BACKGROUNDS[] = { "Light Frame (Default)", "Dark Frame",
+			"Toast Frame", "Transparent" };
+	private String APP_NAMES[] = new String[CAPACITY];
+	private String OLD_LIST_NAME, NEW_LIST_NAME, INTENT;
+	ArrayAdapter<String> mSpinnerAdapter, mBackgrounds;
 	Intent mIntent;
-	int mSpinnerPos, iconSize, defaultIconSize;
+	int mSpinnerPos, iconSize, defaultIconSize, mBackgroundsPos, mTextColor;
 	float textSize, defaultTextSize;
 	boolean horizontal, henabled;
 
 	SharedPreferences sp;
 	SharedPreferences.Editor spe;
 	private ListView APPSLISTVIEW;
-	private Spinner VIEW_MODES;
-	private TextView ViewSettingsLabel, AppsListLabel, IconSize, TextSize,
-			CurrentIconSize, CurrentTextSize;
+	private Spinner VIEW_MODES, BACKGROUNDS_SPINNER;
+	private TextView ViewSettingsLabel, AppsListLabel, BackgroundLabel,
+			IconSize, TextSize, CurrentIconSize, CurrentTextSize,
+			TextColorLabel, CurrentColor;
 	private CheckBox HorizontalScroll;
 	private Context mContext;
 	private SeekBar mIconSize, mTextSize;
@@ -115,6 +122,7 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 	private ScrollView mSettingsView;
 	private Dialog mSettingsDialog;
 	private WindowManager.LayoutParams WMLP;
+	private AmbilWarnaDialog ColorDialog;
 
 	public AppLauncherOnSystemUISettings(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -133,6 +141,7 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 		iconSize = getIconSize();
 		textSize = getTextSize();
 		mSpinnerPos = getSpinnerPos();
+		mBackgroundsPos = getmBackgroundsPos();
 		horizontal = getHorizontal();
 		henabled = getCBState();
 		setOrientation(LinearLayout.VERTICAL);
@@ -161,6 +170,32 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 		mSettingsView.setLayoutParams(new LayoutParams(
 				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
+		BackgroundLabel = new TextView(mContext);
+		BackgroundLabel.setLayoutParams(TVLP);
+		BackgroundLabel.setText("Background");
+		BackgroundLabel.setBackgroundResource(android.R.drawable.title_bar);
+		BackgroundLabel.setTextColor(getTextColor());
+		BackgroundLabel.setGravity(Gravity.CENTER);
+
+		TextColorLabel = new TextView(mContext);
+		TextColorLabel.setLayoutParams(TVLP);
+		TextColorLabel.setText("Text Color");
+		TextColorLabel.setBackgroundResource(android.R.drawable.title_bar);
+		TextColorLabel.setTextColor(getTextColor());
+		TextColorLabel.setGravity(Gravity.CENTER);
+
+		LinearLayout.LayoutParams ColorLL = new LinearLayout.LayoutParams(
+				LayoutParams.MATCH_PARENT, 50);
+		ColorLL.bottomMargin = 30;
+		ColorLL.topMargin = 20;
+		ColorLL.leftMargin = 50;
+		ColorLL.rightMargin = 50;
+		CurrentColor = new TextView(mContext);
+		CurrentColor.setLayoutParams(ColorLL);
+		CurrentColor.setText("");
+		CurrentColor.setBackgroundColor(getTextColor());
+		CurrentColor.setGravity(Gravity.CENTER);
+
 		ViewSettingsLabel = new TextView(mContext);
 		AppsListLabel = new TextView(mContext);
 		ViewSettingsLabel.setLayoutParams(TVLP);
@@ -169,27 +204,27 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 		AppsListLabel.setText("App Shortcuts List: ");
 		ViewSettingsLabel.setBackgroundResource(android.R.drawable.title_bar);
 		AppsListLabel.setBackgroundResource(android.R.drawable.title_bar);
-		ViewSettingsLabel.setTextColor(Color.parseColor("#ffffff00"));
-		AppsListLabel.setTextColor(Color.parseColor("#ffffff00"));
+		ViewSettingsLabel.setTextColor(getTextColor());
+		AppsListLabel.setTextColor(getTextColor());
 		ViewSettingsLabel.setGravity(Gravity.CENTER);
 		HorizontalScroll = new CheckBox(mContext);
 		HorizontalScroll.setLayoutParams(TVLP);
 		HorizontalScroll.setText("Horizontal Scroll (Icon only)");
-		HorizontalScroll.setTextColor(Color.YELLOW);
+		HorizontalScroll.setTextColor(getTextColor());
 		HorizontalScroll.setEnabled(horizontal);
 		HorizontalScroll.setChecked(henabled);
 		IconSize = new TextView(mContext);
 		IconSize.setLayoutParams(TVLP);
 		IconSize.setText("Icon Size");
 		IconSize.setBackgroundResource(android.R.drawable.title_bar);
-		IconSize.setTextColor(Color.parseColor("#ffffff00"));
+		IconSize.setTextColor(getTextColor());
 		IconSize.setGravity(Gravity.CENTER);
 
 		TextSize = new TextView(mContext);
 		TextSize.setLayoutParams(TVLP);
 		TextSize.setText("Text Size");
 		TextSize.setBackgroundResource(android.R.drawable.title_bar);
-		TextSize.setTextColor(Color.parseColor("#ffffff00"));
+		TextSize.setTextColor(getTextColor());
 		TextSize.setGravity(Gravity.CENTER);
 
 		CurrentIconSize = new TextView(mContext);
@@ -197,7 +232,7 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.05f));
 		CurrentIconSize.setText(String.valueOf(iconSize) + " px");
 		CurrentIconSize.setBackgroundResource(android.R.drawable.toast_frame);
-		CurrentIconSize.setTextColor(Color.parseColor("#ffffff00"));
+		CurrentIconSize.setTextColor(getTextColor());
 		CurrentIconSize.setGravity(Gravity.CENTER);
 
 		CurrentTextSize = new TextView(mContext);
@@ -205,7 +240,7 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.05f));
 		CurrentTextSize.setText(String.valueOf(textSize) + " px");
 		CurrentTextSize.setBackgroundResource(android.R.drawable.toast_frame);
-		CurrentTextSize.setTextColor(Color.parseColor("#ffffff00"));
+		CurrentTextSize.setTextColor(getTextColor());
 		CurrentTextSize.setGravity(Gravity.CENTER);
 
 		mIconSize = new SeekBar(mContext);
@@ -219,6 +254,15 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0.95f));
 		mTextSize.setMax((int) defaultTextSize);
 		mTextSize.setProgress((int) textSize);
+
+		if (mSpinnerPos == 3 || mSpinnerPos == 1) {
+			mTextSize.setEnabled(false);
+		} else {
+			mTextSize.setEnabled(true);
+			if (mSpinnerPos == 2) {
+				mIconSize.setEnabled(false);
+			}
+		}
 
 		ICONSIZELL = new LinearLayout(mContext);
 		ICONSIZELL.setLayoutParams(TVLP);
@@ -237,6 +281,7 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 		APPSLISTVIEW = new ListView(mContext);
 		APPSLISTVIEW.setLayoutParams(new LayoutParams(
 				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+
 		VIEW_MODES = new Spinner(mContext);
 		VIEW_MODES.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
 				LayoutParams.WRAP_CONTENT));
@@ -246,14 +291,29 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		VIEW_MODES.setAdapter(mSpinnerAdapter);
 		VIEW_MODES.setSelection(mSpinnerPos);
+
+		BACKGROUNDS_SPINNER = new Spinner(mContext);
+		BACKGROUNDS_SPINNER.setLayoutParams(new LayoutParams(
+				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+		mBackgrounds = new ArrayAdapter<String>(mContext,
+				android.R.layout.simple_spinner_item, BACKGROUNDS);
+		mBackgrounds
+				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		BACKGROUNDS_SPINNER.setAdapter(mBackgrounds);
+		BACKGROUNDS_SPINNER.setSelection(mBackgroundsPos);
+
 		addView(mSettings);
 		THESETTINGS.addView(ViewSettingsLabel);
 		THESETTINGS.addView(VIEW_MODES);
 		THESETTINGS.addView(HorizontalScroll);
+		THESETTINGS.addView(BackgroundLabel);
+		THESETTINGS.addView(BACKGROUNDS_SPINNER);
 		THESETTINGS.addView(IconSize);
 		THESETTINGS.addView(ICONSIZELL);
 		THESETTINGS.addView(TextSize);
 		THESETTINGS.addView(TEXTSIZELL);
+		THESETTINGS.addView(TextColorLabel);
+		THESETTINGS.addView(CurrentColor);
 		THESETTINGS.addView(mDoneSettings);
 		mSettingsView.addView(THESETTINGS);
 		addView(AppsListLabel);
@@ -285,14 +345,77 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 		setmIconSizeListener();
 		setmTextSizeListener();
 		setViewModeOnItemSelectedListener();
+		setBackgroundsOnItemSelectedListener();
 		setAppListViewOnClickListener();
 		setApplistViewOnLongClickListener();
 		setmCurrentIconSizeOnClickListener();
 		setmCurrentTextSizeOnClickListener();
+		setmCurrentColorOnClickListener();
 		setmSettingsOnClickListener();
 		setmDoneSettingsOnClickListener();
 		loadList();
 		refreshList();
+	}
+
+	private void setmCurrentColorOnClickListener() {
+		// TODO Auto-generated method stub
+		CurrentColor.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				ColorDialog = new AmbilWarnaDialog(mContext, getTextColor(),
+						new OnAmbilWarnaListener() {
+
+							@Override
+							public void onOk(AmbilWarnaDialog dialog, int color) {
+								// TODO Auto-generated method stub
+								saveTextColor(color);
+								sendTextColor(color);
+								CurrentColor.setBackgroundColor(color);
+								ViewSettingsLabel.setTextColor(color);
+								AppsListLabel.setTextColor(color);
+								BackgroundLabel.setTextColor(color);
+								TextColorLabel.setTextColor(color);
+								TextSize.setTextColor(color);
+								IconSize.setTextColor(color);
+								CurrentIconSize.setTextColor(color);
+								CurrentTextSize.setTextColor(color);
+								HorizontalScroll.setTextColor(color);
+							}
+
+							@Override
+							public void onCancel(AmbilWarnaDialog dialog) {
+								// TODO Auto-generated method stub
+
+							}
+						});
+				ColorDialog.show();
+			}
+		});
+	}
+
+	private void setBackgroundsOnItemSelectedListener() {
+		// TODO Auto-generated method stub
+		BACKGROUNDS_SPINNER
+				.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+					@Override
+					public void onItemSelected(AdapterView<?> arg0, View arg1,
+							int arg2, long arg3) {
+						// TODO Auto-generated method stub
+						mBackgroundsPos = arg2;
+						BACKGROUNDS_SPINNER.setSelection(mBackgroundsPos);
+						savemBackgroundsPos(mBackgroundsPos);
+						sendBackgroundSetting(mBackgroundsPos);
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> arg0) {
+						// TODO Auto-generated method stub
+						BACKGROUNDS_SPINNER.setSelection(mBackgroundsPos);
+					}
+				});
 	}
 
 	private void setmDoneSettingsOnClickListener() {
@@ -444,7 +567,7 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 							boolean isChecked) {
 						// TODO Auto-generated method stub
 						if (HorizontalScroll.isChecked()) {
-							sendViewModeSettings(3);
+							sendViewModeSettings(100);
 							saveCBState(HorizontalScroll.isChecked());
 						} else {
 							sendViewModeSettings(1);
@@ -475,13 +598,29 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 					horizontal = true;
 					henabled = HorizontalScroll.isChecked();
 					if (henabled) {
-						MODE = 3;
+						MODE = 100;
 					} else {
 						MODE = mSpinnerPos;
 					}
 				} else {
 					horizontal = false;
 					henabled = false;
+				}
+				if (mSpinnerPos != 3 && mSpinnerPos != 1) {
+					if (!mTextSize.isEnabled()) {
+						mTextSize.setEnabled(true);
+					}
+				} else {
+					if (mTextSize.isEnabled()) {
+						mTextSize.setEnabled(false);
+					}
+				}
+				if (mSpinnerPos != 2) {
+					if (!mIconSize.isEnabled()) {
+						mIconSize.setEnabled(true);
+					}
+				} else {
+					mIconSize.setEnabled(false);
 				}
 				sendViewModeSettings(MODE);
 				HorizontalScroll.setEnabled(horizontal);
@@ -512,9 +651,21 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 		spe.commit();
 	}
 
+	private void savemBackgroundsPos(int pos) {
+		sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+		spe = sp.edit();
+		spe.putInt(BACKGROUND_SETTING_INTENT_ACTION, pos);
+		spe.commit();
+	}
+
 	private int getSpinnerPos() {
 		sp = PreferenceManager.getDefaultSharedPreferences(getContext());
 		return sp.getInt(VIEW_MODE_KEY, 0);
+	}
+
+	private int getmBackgroundsPos() {
+		sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+		return sp.getInt(BACKGROUND_SETTING_INTENT_ACTION, 0);
 	}
 
 	private void setApplistViewOnLongClickListener() {
@@ -658,6 +809,13 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 		mContext.sendBroadcast(mIntent);
 	}
 
+	private void sendBackgroundSetting(int mBackgroundsPos) {
+		mIntent = new Intent();
+		mIntent.setAction(BACKGROUND_SETTING_INTENT_ACTION);
+		mIntent.putExtra(BACKGROUND_INTENT_EXTRA_KEY, mBackgroundsPos);
+		mContext.sendBroadcast(mIntent);
+	}
+
 	private float getTextSize() {
 		sp = PreferenceManager.getDefaultSharedPreferences(getContext());
 		return sp.getFloat(TEXT_SIZE_INTENT_EXTRA_KEY, defaultTextSize);
@@ -680,6 +838,25 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 		commitSPE();
 	}
 
+	private int getTextColor() {
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		return sp.getInt(TEXTCOLOR_SETTING_INTENT_ACTION,
+				Color.parseColor("#FFFFFF00"));
+	}
+
+	private void saveTextColor(int color) {
+		openSPE();
+		spe.putInt(TEXTCOLOR_SETTING_INTENT_ACTION, color);
+		commitSPE();
+	}
+
+	private void sendTextColor(int color) {
+		mIntent = new Intent();
+		mIntent.setAction(TEXTCOLOR_SETTING_INTENT_ACTION);
+		mIntent.putExtra(TEXTCOLOR_INTENT_EXTRA_KEY, color);
+		mContext.sendBroadcast(mIntent);
+	}
+
 	private void openSPE() {
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		spe = sp.edit();
@@ -699,11 +876,15 @@ public class AppLauncherOnSystemUISettings extends LinearLayout {
 			List<ApplicationInfo> PACKAGES = PM
 					.getInstalledApplications(PackageManager.GET_META_DATA);
 			for (ApplicationInfo PACKAGE_INFO : PACKAGES) {
-				INSTALLED_PACKAGE.add(PACKAGE_INFO.packageName);
-				LAUNCH_ACTIVITY.add(PM
-						.getLaunchIntentForPackage(PACKAGE_INFO.packageName));
-				APP_ICONS.add(PM.getApplicationIcon(PACKAGE_INFO));
-				APP_NAME.add(PM.getApplicationLabel(PACKAGE_INFO).toString());
+
+				if (PM.getLaunchIntentForPackage(PACKAGE_INFO.packageName) != null) {
+					INSTALLED_PACKAGE.add(PACKAGE_INFO.packageName);
+					LAUNCH_ACTIVITY
+							.add(PM.getLaunchIntentForPackage(PACKAGE_INFO.packageName));
+					APP_ICONS.add(PM.getApplicationIcon(PACKAGE_INFO));
+					APP_NAME.add(PM.getApplicationLabel(PACKAGE_INFO)
+							.toString());
+				}
 			}
 			return null;
 		}
